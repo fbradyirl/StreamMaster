@@ -110,4 +110,4 @@ jobs:
       skip_release_main_build: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_main_build || false }}
       release_as_latest: ${{ github.event_name == 'workflow_dispatch' && inputs.release_as_latest || needs.semantic-release.outputs.new_release_published == 'true' }}
     secrets:
-      token: ${{ secrets.RELEASE_TOKEN }}
+      token: ${{ secrets.GITHUB_TOKEN }}
