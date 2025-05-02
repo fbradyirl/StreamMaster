@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
           
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -70,7 +70,7 @@ jobs:
       - name: Semantic Release
         id: semantic
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           set -e
 
@@ -110,4 +110,4 @@ jobs:
       skip_release_main_build: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_main_build || false }}
       release_as_latest: ${{ github.event_name == 'workflow_dispatch' && inputs.release_as_latest || needs.semantic-release.outputs.new_release_published == 'true' }}
     secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+      token: ${{ secrets.RELEASE_TOKEN }}
