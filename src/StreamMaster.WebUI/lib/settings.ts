@@ -27,6 +27,8 @@ export const getBasePath = () => {
 		// https://vite.dev/guide/assets#new-url-url-import-meta-url
 		const currentUrl = new URL(import.meta.url);
 
+		console.log("currentUrl", currentUrl);
+
 		// Module URL typically points to /assets/[hash].js
 		// We need to go up to the root directory...
 		const pathParts = currentUrl.pathname.split("/");
@@ -37,11 +39,13 @@ export const getBasePath = () => {
 		if (assetsIndex !== -1) {
 			// Remove everything from assets onwards to get the app's root path
 			const basePath = `${pathParts.slice(0, assetsIndex).join("/")}/`;
+			console.log("Returning basePath", basePath);
 			return basePath;
 		}
 
 		// Fallback if structure is different
 		Logger.warn("Could not determine base path from module URL");
+		console.log("Could not determine base path from module URL");
 		return "/";
 	} catch (error) {
 		Logger.error("Error determining base path:", error);
