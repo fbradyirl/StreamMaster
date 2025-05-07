@@ -220,6 +220,30 @@ WebApplication app = builder.Build();
 app.UseResponseCompression();
 app.UseForwardedHeaders();
 
+string basePath = Environment.GetEnvironmentVariable("PATH_BASE") ?? BuildInfo.PATH_BASE ?? "";
+
+app.Use(async (context, next) =>
+{        
+    // first try the old header, then the HA/NGINX one
+    string? prefix = context.Request.Headers["X-Forwarded-Prefix"].FirstOrDefault()
+                  ?? context.Request.Headers["X-Ingress-Path"].FirstOrDefault();
+
+    if (!string.IsNullOrEmpty(prefix))
+    {
+        // set both the Request.PathBase and your basePath var
+        context.Request.PathBase = prefix;
+        basePath = prefix;
+        Console.WriteLine($"Using ingress prefix: '{prefix}'");
+    }
+
+    await next();
+});
+
+// tell ASP NET Core to use the prefix you already calculated
+app.UsePathBase(basePath.StartsWith("/") ? basePath : "/" + basePath);
+// log app path base
+Console.WriteLine($"Using app path base: '{basePath}'");
+
 IHostApplicationLifetime? lifetime = app.Services.GetService<IHostApplicationLifetime>();
 lifetime?.ApplicationStopping.Register(OnShutdown);
 
@@ -272,7 +296,9 @@ using (IServiceScope scope = app.Services.CreateScope())
 
 if (!string.IsNullOrEmpty(BuildInfo.PATH_BASE))
 {
-    app.UsePathBase($"{BuildInfo.PATH_BASE}/");
+    Console.WriteLine($"BuildInfo.PATH_BASE: '{BuildInfo.PATH_BASE}'");
+
+    //app.UsePathBase($"{BuildInfo.PATH_BASE}/");
 }
 
 app.UseDefaultFiles();
@@ -325,6 +351,15 @@ app.MapGet("/routes", async context =>
 
 app.MapHub<StreamMasterHub>("/streammasterhub");//.RequireAuthorization("SignalR");
 
+// when someone GETs exactly the ingress root, send them to swagger:
+app.MapGet($"{basePath}", () => Results.Redirect($"{basePath}/editor/streams"));
+
+// also handle the trailing slash variant:
+app.MapGet($"{basePath}/", () => Results.Redirect($"{basePath}/editor/streams"));
+
+// catch‐all deeper paths under that prefix, too:
+app.MapFallback($"{basePath}/{{*any}}", () => Results.Redirect($"{basePath}/editor/streams"));
+
 app.Run();
 
 static string GetRoutePattern(Endpoint endpoint)
@@ -355,7 +390,5 @@ static X509Certificate2 ValidateSslCertificate(string cert, string password)
         throw;
     }
 }
-
-string basePath = Environment.GetEnvironmentVariable("PATH_BASE") ?? "";
 
 builder.Services.AddControllers().AddMvcOptions(options => options.Conventions.Add(new RoutePrefixConvention(basePath)));

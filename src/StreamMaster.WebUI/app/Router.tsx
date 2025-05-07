@@ -39,6 +39,9 @@ const Router = (): JSX.Element => {
     persistor.persist();
   });
 
+  // remove any trailing slashes so basename exactly matches PathBase
+  const basename = defaultBaseUrl.replace(/\/+$/, '');
+
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route
@@ -205,7 +208,7 @@ const Router = (): JSX.Element => {
       </Route>
     ),
     {
-      basename: defaultBaseUrl + '/'
+      basename
     }
   );
 

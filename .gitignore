@@ -379,3 +379,5 @@ src/StreamMaster.Docs/streammaster/site/*
 # Do not ignore some file paths that are "Logs"
 !src/StreamMaster.Application/Logs/
 !src/StreamMaster.WebUI/lib/smAPI/Logs/
+rebuild_arm64.sh
+rebuild.sh
