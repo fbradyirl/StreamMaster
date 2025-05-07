@@ -89,9 +89,11 @@ export const loadConfig = async (): Promise<AppConfig> => {
 				}
 
 				const data = (await response.json()) as AppConfig;
+				// force defaultBaseUrl to the actual base-path at runtime
 				configData = {
 					...defaultConfig,
 					...data,
+					defaultBaseUrl: getBasePath(),
 				};
 
 				Logger.debug("Config loaded:", configData);
@@ -124,7 +126,7 @@ export const getBaseHostURL = async (): Promise<string> => {
 	const config = await loadConfig();
 
 	return isClient && !isDev
-		? `${window.location.protocol}//${window.location.host}`
+		? `${window.location.origin}${window.location.pathname.replace(/\/$/, '')}`
 		: `http://localhost:${config.defaultPort}${config.defaultBaseUrl}`;
 };
 
@@ -140,7 +142,7 @@ if (isClient) {
 		defaultBaseUrl = config.defaultBaseUrl;
 
 		baseHostURL = !isDev
-			? `${window.location.protocol}//${window.location.host}`
+			? `${window.location.origin}${window.location.pathname.replace(/\/$/, '')}`
 			: `http://localhost:${defaultPort}${defaultBaseUrl}`;
 	});
 }
