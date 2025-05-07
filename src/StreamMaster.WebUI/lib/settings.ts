@@ -27,7 +27,7 @@ export const getBasePath = () => {
 		// https://vite.dev/guide/assets#new-url-url-import-meta-url
 		const currentUrl = new URL(import.meta.url);
 
-		console.log("currentUrl", currentUrl);
+		Logger.debug("Using Module URL of:", currentUrl);
 
 		// Module URL typically points to /assets/[hash].js
 		// We need to go up to the root directory...
@@ -39,7 +39,8 @@ export const getBasePath = () => {
 		if (assetsIndex !== -1) {
 			// Remove everything from assets onwards to get the app's root path
 			const basePath = `${pathParts.slice(0, assetsIndex).join("/")}/`;
-			console.log("Returning basePath", basePath);
+
+			Logger.debug("Base Path resolved to:", basePath);
 			return basePath;
 		}
 
@@ -78,6 +79,8 @@ export const loadConfig = async (): Promise<AppConfig> => {
 				// Join the base path with config.json
 				const configPath = `${basePath}config.json`;
 
+				Logger.debug("Loading config from:", configPath);
+
 				const response = await fetch(configPath);
 
 				if (!response.ok) {
@@ -90,6 +93,8 @@ export const loadConfig = async (): Promise<AppConfig> => {
 					...defaultConfig,
 					...data,
 				};
+
+				Logger.debug("Config loaded:", configData);
 				return configData;
 			} catch (error) {
 				Logger.error("Config loading error:", error);
