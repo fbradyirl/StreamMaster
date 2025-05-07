@@ -8,6 +8,8 @@ import { defineConfig } from "vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+console.log("Vite __dirname:", __dirname);
+
 export default defineConfig({
 	appType: "spa",
 	base: "./",

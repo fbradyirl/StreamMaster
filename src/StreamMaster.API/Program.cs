@@ -220,6 +220,30 @@ WebApplication app = builder.Build();
 app.UseResponseCompression();
 app.UseForwardedHeaders();
 
+string basePath = Environment.GetEnvironmentVariable("PATH_BASE") ?? BuildInfo.PATH_BASE ?? "";
+
+app.Use(async (context, next) =>
+{
+    // Console.WriteLine("---- Incoming Headers ----");
+    // foreach (var h in context.Request.Headers)
+    //     Console.WriteLine($"{h.Key}: {h.Value}");
+    // Console.WriteLine("--------------------------");
+        
+    // first try the old header, then the HA/NGINX one
+    string? prefix = context.Request.Headers["X-Forwarded-Prefix"].FirstOrDefault()
+                  ?? context.Request.Headers["X-Ingress-Path"].FirstOrDefault();
+
+    if (!string.IsNullOrEmpty(prefix))
+    {
+        // set both the Request.PathBase and your basePath var
+        context.Request.PathBase = prefix;
+        basePath = prefix;
+        Console.WriteLine($"Using ingress prefix: '{prefix}'");
+    }
+
+    await next();
+});
+
 IHostApplicationLifetime? lifetime = app.Services.GetService<IHostApplicationLifetime>();
 lifetime?.ApplicationStopping.Register(OnShutdown);
 
@@ -255,7 +279,7 @@ else
 
 //app.UseHttpLogging();
 //app.UseMigrationsEndPoint();
-app.UseSession();
+// app.UseSession();
 
 //app.UseHangfireDashboard();
 
@@ -270,16 +294,30 @@ using (IServiceScope scope = app.Services.CreateScope())
     }
 }
 
-if (!string.IsNullOrEmpty(BuildInfo.PATH_BASE))
-{
-    app.UsePathBase($"{BuildInfo.PATH_BASE}/");
-}
+// string basePath = Environment.GetEnvironmentVariable("PATH_BASE") ?? BuildInfo.PATH_BASE ?? "";
+
+// // UsePathBase should be before UseRouting, UseStaticFiles, etc.
+// if (!string.IsNullOrEmpty(basePath))
+// {
+//     app.UsePathBase(basePath.StartsWith("/") ? basePath : $"/{basePath}");
+// }
+
+Console.WriteLine($"PATH_BASE--: '{basePath}'");
 
 app.UseDefaultFiles();
 
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// _ = app.Environment.IsDevelopment() ? app.UseCors("DevPolicy") : app.UseCors();
+// _ = app.UseCors();
+// app.UseCors(VersionedApiControllerAttribute.API_CORS_POLICY); // or "AllowGet" if you prefer
+app.UseCors("AllowGet");
+app.UseAuthentication();
+app.UseAuthorization();
+//app.UseMiddleware<CacheHeaderMiddleware>();
+
 
 // Initialize SMWebSocketManager
 ISMWebSocketManager smWebSocketManager = app.Services.GetRequiredService<ISMWebSocketManager>();
@@ -296,12 +334,6 @@ app.MapPost("/trigger-reload", async () =>
     return Results.Ok("Reload message sent to all clients.");
 });
 
-_ = app.Environment.IsDevelopment() ? app.UseCors("DevPolicy") : app.UseCors();
-//_ = app.UseCors();
-
-app.UseAuthentication();
-app.UseAuthorization();
-//app.UseMiddleware<CacheHeaderMiddleware>();
 
 app.MapDefaultControllerRoute();
 
@@ -323,7 +355,21 @@ app.MapGet("/routes", async context =>
     }
 });
 
-app.MapHub<StreamMasterHub>("/streammasterhub");//.RequireAuthorization("SignalR");
+app.MapHub<StreamMasterHub>($"{basePath}/streammasterhub");//.RequireAuthorization("SignalR");
+
+app.MapMethods($"{basePath}/streammasterhub/negotiate", new[] { "OPTIONS" }, () => Results.Ok());
+
+// 1) Serve index.html when the user hits exactly the ingress root:
+// app.MapGet($"{basePath}/", async context =>
+// {
+//     context.Response.ContentType = "text/html";
+//     // WebRootPath points to your wwwroot folder
+//     await context.Response.SendFileAsync(
+//         Path.Combine(app.Environment.WebRootPath, "index.html"));
+// });
+
+// // 2) Fallback for any other SPA path under the ingress prefix:
+// app.MapFallbackToFile($"{basePath}/{{*path}}", "index.html");
 
 app.Run();
 
@@ -355,7 +401,3 @@ static X509Certificate2 ValidateSslCertificate(string cert, string password)
         throw;
     }
 }
-
-string basePath = Environment.GetEnvironmentVariable("PATH_BASE") ?? "";
-
-builder.Services.AddControllers().AddMvcOptions(options => options.Conventions.Add(new RoutePrefixConvention(basePath)));

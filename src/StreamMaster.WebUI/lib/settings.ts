@@ -25,5 +25,5 @@ export const defaultBaseUrl = config.defaultBaseUrl;
 
 export const baseHostURL =
 	isClient && !isDev
-		? `${window.location.protocol}//${window.location.host}`
+		? `${window.location.origin}${window.location.pathname.replace(/\/$/, '')}`
 		: `http://localhost:${defaultPort}${defaultBaseUrl}`;
