@@ -5,6 +5,7 @@ import { useSMContext } from "@lib/context/SMProvider";
 import { memo, useEffect, useState } from "react";
 import { GetMessage } from "@lib/common/intl";
 import { Image } from "primereact/image";
+import { getIconUrl, SMLogo } from "@components/icons/iconUtil";
 
 interface Contributor {
   login: string;
@@ -48,7 +49,7 @@ const About = () => {
       <div className="flex flex-column sm-center-stuff">
         <div className="layout-padding-bottom" />
         <Image
-          src="/images/streammaster_logo.png"
+          src={getIconUrl(SMLogo)}
           alt="Stream Master"
           width="64"
         />
@@ -122,7 +123,9 @@ const About = () => {
                       className="no-underline"
                     >
                       <Image 
-                        src={creator.avatar_url} 
+                        src={creator.avatar_url.startsWith("http")
+                          ? creator.avatar_url
+                          : getIconUrl(creator.avatar_url)} 
                         alt={creator.name || creator.login} 
                         width="48" 
                       />
@@ -133,7 +136,7 @@ const About = () => {
                 <>
                   <div className="flex flex-column align-items-center">
                     <Image
-                      src="/images/mrmonday_logo_sm.png"
+                      src={getIconUrl("/images/mrmonday_logo_sm.png")}
                       alt="mrmonday_logo_sm"
                       width="48"
                     />
@@ -142,7 +145,11 @@ const About = () => {
                     </div>
                   </div>
                   <div className="flex flex-column align-items-center">
-                    <Image src="/images/senex_logo_sm.png" alt="senex" width="48" />
+                    <Image
+                      src={getIconUrl("/images/senex_logo_sm.png")}
+                      alt="senex"
+                      width="48"
+                    />
                     <div className="font-italic text-xs" style={{ color: "var(--text-color)" }}>
                       Dev
                     </div>

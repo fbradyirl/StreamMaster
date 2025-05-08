@@ -1,6 +1,7 @@
-import { baseHostURL } from '@lib/settings';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getBaseHostURL } from '@lib/settings';
+import { getIconUrl, SMLogo } from '@components/icons/iconUtil';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -19,7 +20,8 @@ const Login: React.FC = () => {
 
     const checkAuth = async () => {
       try {
-        const response = await fetch(baseHostURL + '/needAuth', {
+        const base = await getBaseHostURL();
+        const response = await fetch(`${base}/needAuth`, {
           method: 'GET',
           credentials: 'include',
           headers: {
@@ -62,7 +64,7 @@ const Login: React.FC = () => {
       <div className="content">
         <div className="panel">
           <div className="panel-header" style={{ backgroundColor: '#263238' }}>
-            <img src="/images/streammaster_logo.png" alt="Stream Master Logo" className="logo" />
+            <img src={getIconUrl(SMLogo)} alt="Stream Master Logo" className="logo" />
           </div>
 
           <div className="panel-body" style={{ backgroundColor: '#21282c' }}>

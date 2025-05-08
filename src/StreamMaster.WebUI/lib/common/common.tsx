@@ -353,10 +353,10 @@ export const FormatDuration = ({ duration }: { duration: string | undefined }) =
 
 function getApiUrl(path: SMFileTypes, originalUrl: string): string {
   if (originalUrl.startsWith('/api/files')) {
-    return `${isDevelopment ? baseHostURL : ''}${originalUrl}`;
+    return `${baseHostURL}${originalUrl}`;
   }
   //  return `${isDevelopment ? baseHostURL : ''}/api/files/${path}/${encodeURIComponent(originalUrl)}`;
-  return `${isDevelopment ? baseHostURL : ''}/api/files/${encodeURIComponent(originalUrl)}`;
+  return `${baseHostURL}/api/files/${encodeURIComponent(originalUrl)}`;
 }
 
 export function findDifferenceStationIdLineUps(firstArray: StationIdLineup[], secondArray: StationIdLineup[]): StationIdLineup[] {

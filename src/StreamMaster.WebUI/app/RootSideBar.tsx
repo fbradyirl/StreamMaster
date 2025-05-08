@@ -7,6 +7,7 @@ import {
 	SideBarMenuIcon,
 	StreamingStatusIcon,
 } from "@lib/common/icons";
+import { getIconUrl, SMLogo } from "@components/icons/iconUtil";
 import { useSMContext } from "@lib/context/SMProvider";
 
 import { useLocalStorage } from "primereact/hooks";
@@ -174,7 +175,7 @@ export const RootSideBar = () => {
 				<div className="flex justify-content-center align-content-center">
 					<img
 						alt="Stream Master Logo"
-						src="/images/streammaster_logo.png"
+						src={getIconUrl(SMLogo)}
 						style={{ width: "40px" }}
 					/>
 				</div>
